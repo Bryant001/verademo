@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    environment {
+        VERACODE_APP_NAME = "JustinDemo"
+		TIME_STAMP = Calendar.getInstance().getTime().format('YYYY-MM-dd-hh:mm:ss',TimeZone.getTimeZone('CST'))
+    }
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "MAVEN"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+				echo 'Application name = "${VERACODE_APP_NAME}"'
+				echo 'Scan name = Verademo_"${TIME_STAMP}"'
+                // Get some code from a GitHub repository
+                git branch: 'main', url: 'https://github.com/Bryant001/verademo'
+
+                // Maven build
+                dir ("app") {
+                    sh "mvn clean package"
+                }
+            }
+		}
+        stage ("Veracode Scan") {
+            steps {
+				echo 'App name: '+"${VERACODE_APP_NAME}"
+				echo 'Scan name: Verademo_'+"${TIME_STAMP}"
+				echo 'Veracode scanning'
+				withCredentials([ usernamePassword (credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
+				// fire-and-forget
+				veracode applicationName: "${VERACODE_APP_NAME}", criticality: 'VeryHigh', canFailJob: true, debug: true, deleteIncompleteScanLevel: '0', scanIncludesPattern: '**.war', scanName: "Verademo_${TIME_STAMP}", timeout: 60, uploadIncludesPattern: '**/**.war', vid: "${VERACODE_API_ID}", vkey: "${VERACODE_API_KEY}"
+				}
+            }
+        }
+	}
+}
