@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    environment {
+        VERACODE_APP_NAME = "JustinDemo"
+		TIME_STAMP = Calendar.getInstance().getTime().format('YYYY-MM-dd-hh:mm:ss',TimeZone.getTimeZone('CST'))
+    }
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "MAVEN"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+				echo 'Application name = "${VERACODE_APP_NAME}"'
+				echo 'Scan name = Verademo_"${TIME_STAMP}"'
+                // Get some code from a GitHub repository
+                git branch: 'main', url: 'https://github.com/Bryant001/verademo'
+
+                // Maven build
+                dir ("app") {
+                    sh "mvn clean package"
+                }
+            }
+		}
+		stage('Veracode Pipeline Scan') {
+			steps {
+				withCredentials([ usernamePassword (credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
+					script { 
+					try {
+						sh 'curl -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip'
+						sh 'unzip -u pipeline-scan-LATEST.zip pipeline-scan.jar'
+						sh 'java -jar pipeline-scan.jar \
+						--veracode_api_id ${VERACODE_API_ID} \
+						--veracode_api_key ${VERACODE_API_KEY} \
+						--file "app/target/verademo.war" \
+						--issue-details true \
+						--fail_on_severity="Very High" \
+						--project_name "${env.JOB_NAME}" \
+						--project_url ${env.GIT_URL} \
+						--project_ref ${env.GIT_COMMIT}'
+						} catch (err) {
+							echo 'Error code: ' + err.getMessage().substring(26)
+						}
+
+					}
+				}
+				echo 'Pipeline scan completed (failures ignored - results available in ${WORKSPACE}/results.json)'
+			}
+		}
+	  }
+	post {
+		always {
+		  archiveArtifacts artifacts: 'results.json', fingerprint: true
+		}
+	}
+}
