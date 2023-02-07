@@ -23,6 +23,7 @@ pipeline {
                 }
             }
 		}
+		//withCredentials uses credentials plugin with credentials stored in configuration
 		stage('Veracode Pipeline Scan') {
 			steps {
 				withCredentials([ usernamePassword (credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
