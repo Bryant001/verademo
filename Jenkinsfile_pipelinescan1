@@ -34,7 +34,7 @@ pipeline {
 						--veracode_api_id ${VERACODE_API_ID} \
 						--veracode_api_key ${VERACODE_API_KEY} \
 						--file "app/target/verademo.war" \
-						--issue-details true \
+						--issue_details true \
 						--fail_on_severity="Very High" \
 						--project_name "${env.JOB_NAME}" \
 						--project_url ${env.GIT_URL} \
