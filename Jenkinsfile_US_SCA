@@ -39,7 +39,7 @@ pipeline {
 
         stage ('build') {
             steps {
-                withMaven {
+                withMaven(maven:'maven') {
                     script {
                         if(isUnix() == true) {
                             sh 'mvn clean package'
