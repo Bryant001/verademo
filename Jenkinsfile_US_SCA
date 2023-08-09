@@ -56,7 +56,7 @@ pipeline {
             steps {
                 echo 'Veracode SCA'
                 withCredentials([ string(credentialsId: 'SRCCLR_API_TOKEN', variable: 'SRCCLR_API_TOKEN')]) {
-                    withMaven(maven:'maven-3') {
+                    withMaven(maven:'MAVEN') {
                         script {
                             if(isUnix() == true) {
                                 sh "curl -sSL https://download.sourceclear.com/ci.sh | sh"
