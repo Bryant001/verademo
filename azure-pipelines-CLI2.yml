@@ -1,0 +1,30 @@
+trigger:
+- none
+pool:
+  vmImage: 'ubuntu-latest'
+steps:
+######################################################
+# Veracode CLI
+######################################################
+- task: CmdLine@2
+  displayName: Veracode CLI
+  inputs:
+    script: |
+      export VERACODE_API_KEY_ID=$(VERACODE_API_ID)
+      export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY)
+      echo "=========================================================================================="
+      echo "Intalling Veracode CLI"
+      echo "=========================================================================================="
+      curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+      echo "=========================================================================================="
+      echo "Configuring Veracode CLI"
+      echo "=========================================================================================="
+      ./veracode configure
+      echo "=========================================================================================="
+      echo "Packaging Using Veracode CLI"
+      echo "=========================================================================================="
+      ./veracode package -s ./ -o ./veracode-package --trust
+      echo "=========================================================================================="
+      echo "Scanning Using Veracode CLI"
+      echo "=========================================================================================="
+      ./veracode static scan ./veracode-package/verademo.war
