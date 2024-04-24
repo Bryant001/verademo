@@ -23,7 +23,4 @@ steps:
       echo "=========================================================================================="
       echo "Scanning Using Veracode CLI"
       echo "=========================================================================================="
-      pwd
-      cd ./veracode-package
-      ls
       ./veracode static scan ./veracode-package/verademo.war
